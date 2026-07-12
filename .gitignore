@@ -53,3 +53,12 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# GFX68k build output
+/tests/out/
+/build/out/
+*.tos
+*.ppm
+examples/mac/build/
+CMakeCache.txt
+CMakeFiles/
