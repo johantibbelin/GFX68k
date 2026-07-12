@@ -1,0 +1,50 @@
+# Amiga build (vbcc m68k-amigaos target, or bebbo's gcc m68k-amigaos --
+# select with TOOLCHAIN=vbcc|gcc).
+#
+# vbcc: needs vbcc + the vbcc68k_amigaos target archive + the Amiga NDK
+#       headers, `vc` on PATH (http://www.compilers.de/vbcc.html).
+# gcc:  needs bebbo's m68k-amigaos-gcc toolchain on PATH
+#       (https://github.com/bebbo/amiga-gcc).
+#
+# Not verified against a real compiler in this environment; written
+# directly against documented exec/graphics.library/intuition.library
+# usage.
+#
+# Usage:
+#   make -f build/Makefile.amiga
+#   make -f build/Makefile.amiga TOOLCHAIN=gcc
+#   make -f build/Makefile.amiga clean
+
+ROOT       := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))/..
+TOOLCHAIN  ?= vbcc
+INCLUDES    = -I$(ROOT)/include -I$(ROOT)/src/platform/amiga
+
+APP        ?= $(ROOT)/examples/amiga/demo.c
+OUTDIR      = $(ROOT)/build/out/amiga
+TARGET      = $(OUTDIR)/demo
+
+SRCS = $(APP) \
+       $(ROOT)/src/common/gfx_primitives.c \
+       $(ROOT)/src/common/font/gfx_font.c \
+       $(ROOT)/src/common/font/font_default.c \
+       $(ROOT)/src/platform/amiga/gfx_amiga.c
+
+ifeq ($(TOOLCHAIN),vbcc)
+CC      = vc
+CFLAGS  = +aos68k -O2 -speed
+else
+CC      = m68k-amigaos-gcc
+CFLAGS  = -noixemul -O2 -Wall
+endif
+
+.PHONY: all clean
+all: $(TARGET)
+
+$(TARGET): $(SRCS) | $(OUTDIR)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $(SRCS)
+
+$(OUTDIR):
+	mkdir -p $(OUTDIR)
+
+clean:
+	rm -rf $(OUTDIR)

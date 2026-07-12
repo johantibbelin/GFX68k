@@ -1,0 +1,40 @@
+# Atari ST build (vbcc, m68k-atari-tos target).
+#
+# Requires vbcc with the m68k-atari target files installed and `vc` on
+# PATH (http://www.compilers.de/vbcc.html -- grab vbcc plus the
+# vbcc68k_atari target archive). Not verified against a real compiler in
+# this environment; written directly against documented vbcc/XBIOS usage.
+#
+# Usage (from anywhere):
+#   make -f build/Makefile.atari
+#   make -f build/Makefile.atari clean
+#
+# Override APP to build a different example, e.g.:
+#   make -f build/Makefile.atari APP=examples/atari/demo.c
+
+ROOT    := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))/..
+VC      ?= vc
+VCFLAGS ?= +tos -O2 -speed
+INCLUDES = -I$(ROOT)/include -I$(ROOT)/src/platform/atari
+
+APP     ?= $(ROOT)/examples/atari/demo.c
+OUTDIR   = $(ROOT)/build/out/atari
+TARGET   = $(OUTDIR)/demo.tos
+
+SRCS = $(APP) \
+       $(ROOT)/src/common/gfx_primitives.c \
+       $(ROOT)/src/common/font/gfx_font.c \
+       $(ROOT)/src/common/font/font_default.c \
+       $(ROOT)/src/platform/atari/gfx_atari.c
+
+.PHONY: all clean
+all: $(TARGET)
+
+$(TARGET): $(SRCS) | $(OUTDIR)
+	$(VC) $(VCFLAGS) $(INCLUDES) -o $@ $(SRCS)
+
+$(OUTDIR):
+	mkdir -p $(OUTDIR)
+
+clean:
+	rm -rf $(OUTDIR)
